@@ -1,5 +1,8 @@
+'use client'
+
 import { Home, UserIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext'
 
 import {
   Sidebar,
@@ -30,10 +33,20 @@ const items = [
 ];
 
 export function AppSidebar() {
+  const { user } = useAuth()
+
   return (
     <Sidebar>
       <SidebarHeader />
       <SidebarContent>
+        {/* Profil uživatele */}
+        {user && (
+          <div className="mb-6 p-4 border-b border-gray-700">
+            <h3 className="font-medium">{user.name}</h3>
+            <p className="text-sm text-gray-400">{user.email}</p>
+          </div>
+        )}
+
         <SidebarGroup>
           <SidebarGroupLabel>Analytics</SidebarGroupLabel>
           <SidebarGroupContent>
