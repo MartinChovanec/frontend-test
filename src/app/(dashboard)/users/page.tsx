@@ -1,6 +1,8 @@
+'use client'
+
 import { MoreHorizontal, Search } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,132 +24,46 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 
-type LoginHistory = {
-  id: number;
-  date: Date;
-  device: string;
-  browser: string;
-  ip: string;
-};
-
 type User = {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
-  lastActive: Date;
-  status: string;
-  role: string;
-  avatar: string;
-  loginHistory: LoginHistory[];
+  image: string;
+  lastLoginDate?: Date;
+  status?: string;
+  role?: string;
 };
 
-// THIS IS ONLY AN EXAMPLE DATA. USE API FROM ASSIGMENT
-
-// Mock data for active users
-const activeUsers: User[] = [
-  {
-    id: 1,
-    name: 'Alex Johnson',
-    email: 'alex.johnson@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    status: 'online',
-    role: 'Admin',
-    loginHistory: [],
-  },
-  {
-    id: 2,
-    name: 'Sarah Williams',
-    email: 'sarah.williams@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 12 * 60 * 1000), // 12 minutes ago
-    status: 'online',
-    role: 'Editor',
-    loginHistory: [],
-  },
-  {
-    id: 3,
-    name: 'Michael Brown',
-    email: 'michael.brown@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 25 * 60 * 1000), // 25 minutes ago
-    status: 'online',
-    role: 'User',
-    loginHistory: [],
-  },
-  {
-    id: 4,
-    name: 'Emily Davis',
-    email: 'emily.davis@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-    status: 'away',
-    role: 'User',
-    loginHistory: [],
-  },
-  {
-    id: 5,
-    name: 'David Miller',
-    email: 'david.miller@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 1.5 * 60 * 60 * 1000), // 1.5 hours ago
-    status: 'away',
-    role: 'Editor',
-    loginHistory: [],
-  },
-  {
-    id: 6,
-    name: 'Jessica Wilson',
-    email: 'jessica.wilson@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    status: 'offline',
-    role: 'User',
-    loginHistory: [],
-  },
-  {
-    id: 7,
-    name: 'Robert Taylor',
-    email: 'robert.taylor@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-    status: 'offline',
-    role: 'User',
-    loginHistory: [],
-  },
-  {
-    id: 8,
-    name: 'Jennifer Anderson',
-    email: 'jennifer.anderson@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-    status: 'offline',
-    role: 'Admin',
-    loginHistory: [],
-  },
-  {
-    id: 9,
-    name: 'Thomas Martinez',
-    email: 'thomas.martinez@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
-    status: 'offline',
-    role: 'User',
-    loginHistory: [],
-  },
-  {
-    id: 10,
-    name: 'Lisa Robinson',
-    email: 'lisa.robinson@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-    status: 'offline',
-    role: 'Editor',
-    loginHistory: [],
-  },
-];
-
 function UsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUsers() {
+      try {
+        const response = await fetch('https://dummyjson.com/users');
+        const data = await response.json();
+        const formattedUsers = data.users.map((user: any) => ({
+          ...user,
+          status: Math.random() > 0.5 ? 'online' : 'away',
+          role: Math.random() > 0.8 ? 'Admin' : 'User',
+        }));
+        setUsers(formattedUsers);
+      } catch (error) {
+        console.error('Chyba při načítání uživatelů:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
+  if (isLoading) {
+    return <div>Načítání...</div>;
+  }
+
   return (
     <div>
       <h1>Users analytics</h1>
@@ -196,7 +112,7 @@ function UsersPage() {
           <CardHeader>
             <CardTitle className="text-2xl">Active Users</CardTitle>
             <CardDescription>
-              View the last 10 active users in your system
+              View all users in the system
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -208,18 +124,23 @@ function UsersPage() {
               />
             </div>
             <div className="space-y-4">
-              {activeUsers.map((user) => (
+              {users.map((user) => (
                 <div
                   key={user.id}
                   className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
                 >
                   <div className="flex items-center gap-3">
+                    <img 
+                      src={user.image} 
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="h-10 w-10 rounded-full"
+                    />
                     <div>
                       <Link
                         href={`/users/${user.id}`}
                         className="text-primary font-medium hover:underline"
                       >
-                        {user.name}
+                        {user.firstName} {user.lastName}
                       </Link>
                       <div className="text-muted-foreground text-sm">
                         {user.email}
@@ -229,13 +150,7 @@ function UsersPage() {
                   <div className="flex items-center gap-4">
                     <div className="hidden flex-col items-end md:flex">
                       <Badge
-                        variant={
-                          user.status === 'online'
-                            ? 'default'
-                            : user.status === 'away'
-                              ? 'destructive'
-                              : 'secondary'
-                        }
+                        variant={user.status === 'online' ? 'default' : 'destructive'}
                         className="mb-1"
                       >
                         {user.status}
@@ -255,10 +170,7 @@ function UsersPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem>
-                          <Link
-                            href={`/users/${user.id}`}
-                            className="flex w-full"
-                          >
+                          <Link href={`/users/${user.id}`} className="flex w-full">
                             View profile
                           </Link>
                         </DropdownMenuItem>
@@ -276,3 +188,16 @@ function UsersPage() {
 }
 
 export default UsersPage;
+
+/*
+{
+    id: 5,
+    name: 'David Miller',
+    email: 'david.miller@example.com',
+    avatar: '/placeholder.svg?height=40&width=40',
+    lastActive: new Date(Date.now() - 1.5 * 60 * 60 * 1000), // 1.5 hours ago
+    status: 'away',
+    role: 'Editor',
+    loginHistory: [],
+  },
+  */
