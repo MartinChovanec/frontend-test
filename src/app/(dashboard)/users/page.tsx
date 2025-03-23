@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { AddUserDialog } from '@/components/users/AddUserDialog'
 
 type User = {
   id: number;
@@ -59,6 +60,10 @@ function UsersPage() {
 
     fetchUsers();
   }, []);
+
+  const handleAddUser = (newUser: User) => {
+    setUsers(prevUsers => [newUser, ...prevUsers])
+  }
 
   if (isLoading) {
     return <div>Načítání...</div>;
@@ -110,10 +115,13 @@ function UsersPage() {
       <div>
         <Card className="mx-auto w-full max-w-4xl">
           <CardHeader>
-            <CardTitle className="text-2xl">Active Users</CardTitle>
-            <CardDescription>
-              View all users in the system
-            </CardDescription>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-2xl">Active Users</CardTitle>
+                <CardDescription>View all users in the system</CardDescription>
+              </div>
+              <AddUserDialog onAddUser={handleAddUser} />
+            </div>
           </CardHeader>
           <CardContent>
             <div className="relative mb-6">
