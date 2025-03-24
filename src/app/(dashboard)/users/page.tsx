@@ -157,6 +157,36 @@ function UsersPage() {
                                             </div>
                                         </div>
                                     </div>
+                                    <div className="flex items-center gap-4">
+                                        <div className="hidden flex-col items-end md:flex">
+                                            <Badge
+                                                variant={user.status === "online" ? "default" : "destructive"}
+                                                className="mb-1"
+                                            >
+                                                {user.status}
+                                            </Badge>
+                                        </div>
+                                        <Badge variant="outline" className="hidden md:inline-flex">
+                                            {user.role}
+                                        </Badge>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Open menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem>
+                                                    <Link href={`/users/${user.id}`} className="flex w-full">
+                                                        View profile
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </div>
                             ))}
                         </div>
