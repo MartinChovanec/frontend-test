@@ -42,10 +42,9 @@ type User = {
   lastLoginDate?: Date;
   status?: string;
   role?: string;
+  lastActive: string; 
   loginHistory: LoginHistoryEntry[];
 };
-
-
 
 function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -74,21 +73,21 @@ function UsersPage() {
   if (isLoading) {
     return <div>Načítání...</div>;
   }
-  console.log(users)
+  
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  // Date 30 days ago
-const thirtyDaysAgo = new Date();
-thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const totalLogins = users.reduce((total, user) => {
+    const userLogins = user.loginHistory.filter(login => {
+      const loginDate = new Date(login.date);
+      return loginDate >= thirtyDaysAgo;
+    }).length;
+    return total + userLogins;
+  }, 0);
 
-const totalLogins = users.reduce((total, user) => {
-
-  const userLogins = user.loginHistory.filter(login => {
-    const loginDate = new Date(login.date);
-    return loginDate >= thirtyDaysAgo;
-  }).length;
-
-  return total + userLogins;
-}, 0);
+  const lastActiveUsers = [...users]
+    .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
+    .slice(0, 5);
 
   return (
     <div>
@@ -133,6 +132,45 @@ const totalLogins = users.reduce((total, user) => {
           </CardFooter>
         </Card>
       </div>
+
+{/* Last Active Users */}
+<div className="mt-10">
+        <Card className="mx-auto w-full max-w-4xl">
+          <CardHeader>
+            <CardTitle className="text-2xl">List of last logged-in users</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {lastActiveUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={user.image} 
+                      alt={`${user.firstName} ${user.lastName}`}
+                      className="h-10 w-10 rounded-full"
+                    />
+                    <div>
+                      <Link
+                        href={`/users/${user.id}`}
+                        className="text-primary font-medium hover:underline"
+                      >
+                        {user.firstName} {user.lastName}
+                      </Link>
+                      <div className="text-muted-foreground text-sm">
+                        Poslední aktivita: {new Date(user.lastActive).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      {/* Active Users */}
       <div>
         <Card className="mx-auto w-full max-w-4xl">
           <CardHeader>
