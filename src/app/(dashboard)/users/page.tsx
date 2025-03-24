@@ -217,16 +217,3 @@ const totalLogins = users.reduce((total, user) => {
 }
 
 export default UsersPage;
-
-/*
-{
-    id: 5,
-    name: 'David Miller',
-    email: 'david.miller@example.com',
-    avatar: '/placeholder.svg?height=40&width=40',
-    lastActive: new Date(Date.now() - 1.5 * 60 * 60 * 1000), // 1.5 hours ago
-    status: 'away',
-    role: 'Editor',
-    loginHistory: [],
-  },
-  */
