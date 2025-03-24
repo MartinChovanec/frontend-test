@@ -54,22 +54,9 @@ function UsersPage() {
   useEffect(() => {
     async function fetchUsers() {
       try {
-        const response = await fetch('https://dummyjson.com/users');
+        const response = await fetch('/api/users');
         const data = await response.json();
-        const formattedUsers = data.users.map((user: any) => ({
-          ...user,
-          status: Math.random() > 0.5 ? 'online' : 'away',
-          role: Math.random() > 0.8 ? 'Admin' : 'User',
-          "loginHistory":
-          [
-            {"id":1,"date":"2025-03-23T08:23:00.000Z","device":"desktop","browser":"Chrome","ip":"11234.543"},
-            {"id":2,"date":"2025-03-21T13:05:00.000Z","device":"mobile","browser":"Safari","ip":"11234.543"},
-            {"id":3,"date":"2025-03-15T17:47:00.000Z","device":"tablet","browser":"Firefox","ip":"11234.543"},
-            {"id":4,"date":"2025-03-10T10:32:00.000Z","device":"desktop","browser":"Edge","ip":"11234.543"},
-            {"id":5,"date":"2025-03-08T07:15:00.000Z","device":"mobile","browser":"Chrome","ip":"11234.543"},
-          ]
-        }));
-        setUsers(formattedUsers);
+        setUsers(data.users);
       } catch (error) {
         console.error('Chyba při načítání uživatelů:', error);
       } finally {
