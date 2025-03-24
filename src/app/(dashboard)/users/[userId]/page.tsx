@@ -1,5 +1,5 @@
 import { CalendarDays, Clock, Monitor, Smartphone, Tablet } from 'lucide-react';
-
+import { LoginFrequencyChart } from '@/components/users/LoginFrequencyChart'; 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -48,9 +48,9 @@ export default function UserDetailPage() {
     avatar: '/placeholder.svg?height=40&width=40',
     loginHistory: [       
       {"id":1,"date":"2025-03-23T08:23:00.000Z","device":"desktop","browser":"Chrome","ip":"11234.543"},
-      {"id":2,"date":"2021-03-14T13:05:00.000Z","device":"mobile","browser":"Safari","ip":"11234.543"},
-      {"id":3,"date":"2025-03-22T17:47:00.000Z","device":"tablet","browser":"Firefox","ip":"11234.543"},
-      {"id":4,"date":"2022-03-10T10:32:00.000Z","device":"desktop","browser":"Edge","ip":"11234.543"},
+      {"id":2,"date":"2025-03-21T13:05:00.000Z","device":"mobile","browser":"Safari","ip":"11234.543"},
+      {"id":3,"date":"2025-03-15T17:47:00.000Z","device":"tablet","browser":"Firefox","ip":"11234.543"},
+      {"id":4,"date":"2025-03-10T10:32:00.000Z","device":"desktop","browser":"Edge","ip":"11234.543"},
       {"id":5,"date":"2025-03-08T07:15:00.000Z","device":"mobile","browser":"Chrome","ip":"11234.543"},
 ],
     role: 'Admin',
@@ -212,6 +212,7 @@ export default function UserDetailPage() {
                   ))}
                 </TableBody>
               </Table>
+              <LoginFrequencyChart loginHistory={user.loginHistory} />
             </div>
           </div>
         </CardContent>
