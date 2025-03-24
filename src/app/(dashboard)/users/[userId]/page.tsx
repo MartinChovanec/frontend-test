@@ -20,7 +20,7 @@ import {
 
 type LoginHistory = {
   id: number;
-  date: Date;
+  date: string | Date;
   device: string;
   browser: string;
   ip: string;
@@ -46,26 +46,35 @@ export default function UserDetailPage() {
     status: 'online',
     lastActive: new Date(),
     avatar: '/placeholder.svg?height=40&width=40',
-    loginHistory: [],
+    loginHistory: [       
+      {"id":1,"date":"2025-03-23T08:23:00.000Z","device":"desktop","browser":"Chrome","ip":"11234.543"},
+      {"id":2,"date":"2021-03-14T13:05:00.000Z","device":"mobile","browser":"Safari","ip":"11234.543"},
+      {"id":3,"date":"2025-03-22T17:47:00.000Z","device":"tablet","browser":"Firefox","ip":"11234.543"},
+      {"id":4,"date":"2022-03-10T10:32:00.000Z","device":"desktop","browser":"Edge","ip":"11234.543"},
+      {"id":5,"date":"2025-03-08T07:15:00.000Z","device":"mobile","browser":"Chrome","ip":"11234.543"},
+],
     role: 'Admin',
   };
 
   // Helper function to format dates
-  const formatDate = (date: Date) => {
+  const formatDate = (date: string | Date ) => {
+    const input = new Date(date);
+    console.log(input)
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    }).format(date);
+    }).format(input);
   };
 
   // Helper function to format time
-  const formatTime = (date: Date) => {
+  const formatTime = (date: string | Date ) => {
+    const input = new Date(date);
     return new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-    }).format(date);
+    }).format(input);
   };
 
   // Helper function to get device icon
@@ -81,6 +90,19 @@ export default function UserDetailPage() {
         return <Monitor className="h-4 w-4" />;
     }
   };
+
+  const logsInOneMonth = (user: User) => {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    return user.loginHistory.filter(login => new Date(login.date) >= oneMonthAgo).length;
+  }
+
+  const logsInThreeDays = (user: User) => {
+    const threeDayAgo = new Date();
+    threeDayAgo.setDate(threeDayAgo.getDate() - 3);
+    return user.loginHistory.filter(login => new Date(login.date) >= threeDayAgo).length;
+  }
+
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
@@ -132,7 +154,7 @@ export default function UserDetailPage() {
                     Past 72 hours
                   </span>
                   <div className="mt-1 flex items-baseline">
-                    <span className="text-3xl font-bold">0</span>
+                    <span className="text-3xl font-bold">{logsInThreeDays(user)}</span>
                     <span className="text-muted-foreground ml-2 text-sm">
                       logins
                     </span>
@@ -145,7 +167,7 @@ export default function UserDetailPage() {
                     Past 30 days
                   </span>
                   <div className="mt-1 flex items-baseline">
-                    <span className="text-3xl font-bold">0</span>
+                    <span className="text-3xl font-bold">{logsInOneMonth(user)}</span>
                     <span className="text-muted-foreground ml-2 text-sm">
                       logins
                     </span>
