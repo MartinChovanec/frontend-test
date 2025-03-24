@@ -25,6 +25,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { AddUserDialog } from '@/components/users/AddUserDialog'
 
+type LoginHistoryEntry = {
+  id: number;
+  date: string;
+  device: string;
+  browser: string;
+  ip: string;
+};
+
 type User = {
   id: number;
   firstName: string;
@@ -34,7 +42,10 @@ type User = {
   lastLoginDate?: Date;
   status?: string;
   role?: string;
+  loginHistory: LoginHistoryEntry[];
 };
+
+
 
 function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -51,11 +62,11 @@ function UsersPage() {
           role: Math.random() > 0.8 ? 'Admin' : 'User',
           "loginHistory":
           [
-            {"id":1,"date":"2023-12-15T08:23:00.000Z","device":"desktop","browser":"Chrome","ip":"11234.543"},
-            {"id":2,"date":"2023-12-14T13:05:00.000Z","device":"mobile","browser":"Safari","ip":"11234.543"},
-            {"id":3,"date":"2023-12-12T17:47:00.000Z","device":"tablet","browser":"Firefox","ip":"11234.543"},
-            {"id":4,"date":"2023-12-10T10:32:00.000Z","device":"desktop","browser":"Edge","ip":"11234.543"},
-            {"id":5,"date":"2023-12-08T07:15:00.000Z","device":"mobile","browser":"Chrome","ip":"11234.543"},
+            {"id":1,"date":"2025-03-23T08:23:00.000Z","device":"desktop","browser":"Chrome","ip":"11234.543"},
+            {"id":2,"date":"2025-03-21T13:05:00.000Z","device":"mobile","browser":"Safari","ip":"11234.543"},
+            {"id":3,"date":"2025-03-15T17:47:00.000Z","device":"tablet","browser":"Firefox","ip":"11234.543"},
+            {"id":4,"date":"2025-03-10T10:32:00.000Z","device":"desktop","browser":"Edge","ip":"11234.543"},
+            {"id":5,"date":"2025-03-08T07:15:00.000Z","device":"mobile","browser":"Chrome","ip":"11234.543"},
           ]
         }));
         setUsers(formattedUsers);
@@ -76,6 +87,21 @@ function UsersPage() {
   if (isLoading) {
     return <div>Načítání...</div>;
   }
+  console.log(users)
+
+  // Date 30 days ago
+const thirtyDaysAgo = new Date();
+thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+const totalLogins = users.reduce((total, user) => {
+
+  const userLogins = user.loginHistory.filter(login => {
+    const loginDate = new Date(login.date);
+    return loginDate >= thirtyDaysAgo;
+  }).length;
+
+  return total + userLogins;
+}, 0);
 
   return (
     <div>
@@ -86,7 +112,7 @@ function UsersPage() {
             <p className="text-lg font-semibold">Total Users</p>
           </CardTitle>
           <CardContent className={'mx-auto'}>
-            <p className="text-2xl font-bold">1,234</p>
+            <p className="text-2xl font-bold">{users.length}</p>
           </CardContent>
           <CardFooter>
             <p className="text-sm text-gray-500">Updated xx minutes ago</p>
@@ -113,7 +139,7 @@ function UsersPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className={'mx-auto'}>
-            <p className="text-2xl font-bold">10 000</p>
+            <p className="text-2xl font-bold">{totalLogins}</p>
           </CardContent>
           <CardFooter>
             <p className="text-sm text-gray-500">Updated xx minutes ago</p>
