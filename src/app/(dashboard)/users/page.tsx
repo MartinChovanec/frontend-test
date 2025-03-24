@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { AddUserDialog } from "@/components/users/AddUserDialog";
+import LoginTrendChart from "@/components/users/LoginTrendChart"; // Import grafu
 
 type LoginHistoryEntry = {
     id: number;
@@ -82,6 +83,9 @@ function UsersPage() {
         .sort((a, b) => new Date(b.lastActive).getTime() - new Date(a.lastActive).getTime())
         .slice(0, 5);
 
+    const allLogins: LoginHistoryEntry[] = users.flatMap((user) => user.loginHistory);
+
+
     return (
         <div>
             <h1>Users analytics</h1>
@@ -126,11 +130,23 @@ function UsersPage() {
                 </Card>
             </div>
 
+               {/* Sekce grafu celkového trendu přihlášení */}
+               <div className="mt-10">
+                <Card className="mx-auto w-full max-w-4xl">
+                    <CardHeader>
+                        <CardTitle className="text-2xl">Overall login trend</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <LoginTrendChart loginHistory={allLogins} />
+                    </CardContent>
+                </Card>
+            </div>
+
             {/* Last Active Users */}
             <div className="mt-10">
                 <Card className="mx-auto w-full max-w-4xl">
                     <CardHeader>
-                        <CardTitle className="text-2xl">List of last logged-in users</CardTitle>
+                        <CardTitle className="text-2xl">List of last 5 logged-in users</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
