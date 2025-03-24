@@ -64,7 +64,7 @@ export const LoginFrequencyChart: React.FC<LoginFrequencyChartProps> = ({ loginH
     responsive: true,
     plugins: {
       legend: { position: 'top' as const },
-      title: { display: true, text: 'Frekvence přihlášení za posledních 30 dní' },
+      title: { display: true, text: 'Frequency of logs in the last 30 days' },
     },
   };
 
