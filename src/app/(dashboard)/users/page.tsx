@@ -40,6 +40,17 @@ type User = {
     loginHistory: LoginHistoryEntry[];
 };
 
+type SuspiciousUser = {
+    user: User;
+    stats: {
+        totalLogins: number;
+        distinctDays: number;
+        daysOver10: number;
+        maxLogins: number;
+        avgLogins: number;
+    };
+};
+
 function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,6 +96,49 @@ function UsersPage() {
 
     const allLogins: LoginHistoryEntry[] = users.flatMap((user) => user.loginHistory);
 
+    // funcntion wchich detects suspicious user
+    const detectSuspiciousUsers = (users: User[]): SuspiciousUser[] => {
+        const suspiciousUsers: SuspiciousUser[] = [];
+
+        const now = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(now.getDate() - 30);
+
+        users.forEach((user) => {
+            // filter logins for the last 30 days
+            const loginsLast30 = user.loginHistory.filter((login) => new Date(login.date) >= thirtyDaysAgo);
+            if (loginsLast30.length === 0) return;
+            
+            // Agregace loginů podle dne (ve formátu YYYY-MM-DD)
+            const dayCounts: { [day: string]: number } = {};
+            loginsLast30.forEach((login) => {
+                const day = new Date(login.date).toISOString().split("T")[0];
+                dayCounts[day] = (dayCounts[day] || 0) + 1;
+            });
+
+            const days = Object.keys(dayCounts);
+            const totalLogins = loginsLast30.length;
+            const distinctDays = days.length;
+            const daysOver10 = days.filter((day) => dayCounts[day] > 10).length;
+            const maxLogins = Math.max(...Object.values(dayCounts));
+            const avgLogins = totalLogins / distinctDays;
+            
+            // has more than 10 logins in at least 3 days
+            const condition1 = daysOver10 >= 3;
+            // average 2-3 logins per day, but one day with 15+ logins
+            const condition2 = avgLogins <= 3 && maxLogins >= 15;
+
+            if (condition1 || condition2) {
+                suspiciousUsers.push({
+                    user,
+                    stats: { totalLogins, distinctDays, daysOver10, maxLogins, avgLogins },
+                });
+            }
+        });
+
+        return suspiciousUsers;
+    };
+    const suspicious = detectSuspiciousUsers(users);
 
     return (
         <div>
@@ -130,8 +184,8 @@ function UsersPage() {
                 </Card>
             </div>
 
-               {/* Sekce grafu celkového trendu přihlášení */}
-               <div className="mt-10">
+            {/* trend chart */}
+            <div className="mt-10">
                 <Card className="mx-auto w-full max-w-4xl">
                     <CardHeader>
                         <CardTitle className="text-2xl">Overall login trend</CardTitle>
@@ -141,7 +195,57 @@ function UsersPage() {
                     </CardContent>
                 </Card>
             </div>
+            {/* Suspicious users */}
+            <div className="mt-10">
+                <Card className="mx-auto w-full max-w-4xl">
+                    <CardHeader>
+                        <CardTitle className="text-2xl">List of suspicious users</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {suspicious.length === 0 ? (
+                            <p>No suspicious user</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {suspicious.map(({ user, stats }) => (
+                                    <div
+                                        key={user.id}
+                                        className="hover:bg-muted/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <img
+                                                src={user.image}
+                                                alt={`${user.firstName} ${user.lastName}`}
+                                                className="h-10 w-10 rounded-full"
+                                            />
+                                            <div>
+                                                <Link
+                                                    href={`/users/${user.id}`}
+                                                    className="text-primary font-medium hover:underline"
+                                                >
+                                                    {user.firstName} {user.lastName}
+                                                </Link>
+                                                <div className="text-muted-foreground text-sm">
+                                                    Last active: {new Date(user.lastActive).toLocaleString()}
+                                                    <br />
+                                                    Total logins (30d): {stats.totalLogins}
+                                                    <br />
+                                                    Days with more than 10 logs: {Math.round(stats.daysOver10)}
+                                                    <br />
+                                                    Average logs: {Math.round(stats.avgLogins)}
+                                                </div>
+                                            </div>
+                                        </div>
 
+                                        <div className="flex items-center">
+                                            <Badge variant="destructive">Suspicious</Badge>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
             {/* Last Active Users */}
             <div className="mt-10">
                 <Card className="mx-auto w-full max-w-4xl">
