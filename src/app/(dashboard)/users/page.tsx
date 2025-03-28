@@ -16,7 +16,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { AddUserDialog } from "@/components/users/AddUserDialog";
 import LoginTrendChart from "@/components/users/LoginTrendChart"; // Import grafu
 
 type LoginHistoryEntry = {
@@ -322,7 +321,6 @@ function UsersPage() {
                                 <CardTitle className="text-2xl">Active Users</CardTitle>
                                 <CardDescription>View all users in the system</CardDescription>
                             </div>
-                            <AddUserDialog onAddUser={handleAddUser} />
                         </div>
                     </CardHeader>
                     <CardContent>
