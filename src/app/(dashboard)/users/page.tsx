@@ -3,6 +3,9 @@
 import { MoreHorizontal, Search } from "lucide-react";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store/store";
+import { setUsers, addUser } from "@/store/userSlice";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +19,18 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import LoginTrendChart from "@/components/users/LoginTrendChart"; // Import grafu
+import LoginTrendChart from "@/components/users/LoginTrendChart";
+
+// Importy dialogových komponent (předpokládáme, že máte tyto komponenty)
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogTrigger,
+} from "@/components/ui/dialog";
 
 type LoginHistoryEntry = {
     id: number;
@@ -51,27 +65,56 @@ type SuspiciousUser = {
 };
 
 function UsersPage() {
-    const [users, setUsers] = useState<User[]>([]);
+    const dispatch: AppDispatch = useDispatch();
+    const users = useSelector((state: RootState) => state.users.users);
     const [isLoading, setIsLoading] = useState(true);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [firstName, setFirstName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
 
     useEffect(() => {
         async function fetchUsers() {
             try {
                 const response = await fetch("/api/users");
                 const data = await response.json();
-                setUsers(data.users);
+                dispatch(setUsers(data.users));
             } catch (error) {
                 console.error("Chyba při načítání uživatelů:", error);
             } finally {
                 setIsLoading(false);
             }
         }
-
         fetchUsers();
-    }, []);
+    }, [dispatch]);
 
+    // adds a new user
     const handleAddUser = (newUser: User) => {
-        setUsers((prevUsers) => [newUser, ...prevUsers]);
+        dispatch(addUser(newUser));
+    };
+
+    // Handler to send a form with a new user
+    const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const newUser: User = {
+            id: Date.now(),
+            firstName,
+            lastName,
+            email,
+            image: "",
+            lastActive: new Date().toISOString(),
+            loginHistory: [],
+            status: "offline",
+            role: "user",
+        };
+
+        handleAddUser(newUser);
+        // clean up the diadlog
+        setFirstName("null");
+        setLastName("");
+        setEmail("");
+        setIsDialogOpen(false);
     };
 
     if (isLoading) {
@@ -95,20 +138,16 @@ function UsersPage() {
 
     const allLogins: LoginHistoryEntry[] = users.flatMap((user) => user.loginHistory);
 
-    // funcntion wchich detects suspicious user
     const detectSuspiciousUsers = (users: User[]): SuspiciousUser[] => {
         const suspiciousUsers: SuspiciousUser[] = [];
-
         const now = new Date();
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(now.getDate() - 30);
 
         users.forEach((user) => {
-            // filter logins for the last 30 days
             const loginsLast30 = user.loginHistory.filter((login) => new Date(login.date) >= thirtyDaysAgo);
             if (loginsLast30.length === 0) return;
-            
-            // Agregace loginů podle dne (ve formátu YYYY-MM-DD)
+
             const dayCounts: { [day: string]: number } = {};
             loginsLast30.forEach((login) => {
                 const day = new Date(login.date).toISOString().split("T")[0];
@@ -121,7 +160,6 @@ function UsersPage() {
             const daysOver10 = days.filter((day) => dayCounts[day] > 10).length;
             const maxLogins = Math.max(...Object.values(dayCounts));
             const avgLogins = totalLogins / distinctDays;
-            
             // has more than 10 logins in at least 3 days
             const condition1 = daysOver10 >= 3;
             // average 2-3 logins per day, but one day with 15+ logins
@@ -137,11 +175,11 @@ function UsersPage() {
 
         return suspiciousUsers;
     };
+
     const suspicious = detectSuspiciousUsers(users);
 
     return (
         <div>
-            <h1>Users analytics</h1>
             <div className={"mx-auto my-7 flex max-w-4xl gap-4"}>
                 <Card>
                     <CardTitle className={"mx-auto"}>
@@ -154,7 +192,6 @@ function UsersPage() {
                         <p className="text-sm text-gray-500">Updated xx minutes ago</p>
                     </CardFooter>
                 </Card>
-
                 <Card>
                     <CardHeader>
                         <CardTitle className={"mx-auto"}>
@@ -183,7 +220,7 @@ function UsersPage() {
                 </Card>
             </div>
 
-            {/* trend chart */}
+            {/* Trend chart */}
             <div className="mt-10">
                 <Card className="mx-auto w-full max-w-4xl">
                     <CardHeader>
@@ -194,6 +231,7 @@ function UsersPage() {
                     </CardContent>
                 </Card>
             </div>
+
             {/* Suspicious users */}
             <div className="mt-10">
                 <Card className="mx-auto w-full max-w-4xl">
@@ -234,7 +272,6 @@ function UsersPage() {
                                                 </div>
                                             </div>
                                         </div>
-
                                         <div className="flex items-center">
                                             <Badge variant="destructive">Suspicious</Badge>
                                         </div>
@@ -245,6 +282,7 @@ function UsersPage() {
                     </CardContent>
                 </Card>
             </div>
+
             {/* Last Active Users */}
             <div className="mt-10">
                 <Card className="mx-auto w-full max-w-4xl">
@@ -312,6 +350,7 @@ function UsersPage() {
                     </CardContent>
                 </Card>
             </div>
+
             {/* Active Users */}
             <div>
                 <Card className="mx-auto w-full max-w-4xl">
@@ -320,6 +359,45 @@ function UsersPage() {
                             <div>
                                 <CardTitle className="text-2xl">Active Users</CardTitle>
                                 <CardDescription>View all users in the system</CardDescription>
+                            </div>
+                            <div>
+                                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="outline" className="bg-black text-white hover:bg-gray-800">
+                                            Add a user
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent>
+                                        <DialogHeader>
+                                            <DialogTitle>Add a user</DialogTitle>
+                                            <DialogDescription>Fill up the form</DialogDescription>
+                                        </DialogHeader>
+                                        <form onSubmit={handleFormSubmit} className="space-y-4">
+                                            <Input
+                                                placeholder="Name"
+                                                value={firstName}
+                                                onChange={(e) => setFirstName(e.target.value)}
+                                                required
+                                            />
+                                            <Input
+                                                placeholder="Surname"
+                                                value={lastName}
+                                                onChange={(e) => setLastName(e.target.value)}
+                                                required
+                                            />
+                                            <Input
+                                                placeholder="Email"
+                                                type="email"
+                                                value={email}
+                                                onChange={(e) => setEmail(e.target.value)}
+                                                required
+                                            />
+                                            <DialogFooter>
+                                                <Button type="submit">Create</Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
                         </div>
                     </CardHeader>
