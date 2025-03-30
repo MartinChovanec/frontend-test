@@ -1,3 +1,8 @@
+"use client";
+
+import { useParams } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store/store";
 import { CalendarDays, Clock, Monitor, Smartphone, Tablet } from "lucide-react";
 import { LoginFrequencyChart } from "@/components/users/LoginFrequencyChart";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,32 +26,24 @@ type User = {
     status: string;
     role: string;
     avatar: string;
+    firstName: string;
+    lastName: string;
     loginHistory: LoginHistory[];
 };
 
 export default function UserDetailPage() {
-    // Mock data - in a real app, this would come from your API or database
-    const user: User = {
-        id: 1,
-        name: "Alex Johnson",
-        email: "alex.johnson@example.com",
-        status: "online",
-        lastActive: new Date(),
-        avatar: "/placeholder.svg?height=40&width=40",
-        loginHistory: [
-            { id: 1, date: "2025-03-23T08:23:00.000Z", device: "desktop", browser: "Chrome", ip: "11234.543" },
-            { id: 2, date: "2025-03-21T13:05:00.000Z", device: "mobile", browser: "Safari", ip: "11234.543" },
-            { id: 3, date: "2025-03-15T17:47:00.000Z", device: "tablet", browser: "Firefox", ip: "11234.543" },
-            { id: 4, date: "2025-03-10T10:32:00.000Z", device: "desktop", browser: "Edge", ip: "11234.543" },
-            { id: 5, date: "2025-03-08T07:15:00.000Z", device: "mobile", browser: "Chrome", ip: "11234.543" },
-        ],
-        role: "Admin",
-    };
+    const { userId } = useParams();
 
-    // Helper function to format dates
+    const user = useSelector((state: RootState) => state.users.users.find((u) => u.id.toString() === userId)) as
+        | User
+        | undefined;
+
+    if (!user) {
+        return <div>User not found</div>;
+    }
+
     const formatDate = (date: string | Date) => {
         const input = new Date(date);
-        console.log(input);
         return new Intl.DateTimeFormat("en-US", {
             year: "numeric",
             month: "short",
@@ -85,9 +82,9 @@ export default function UserDetailPage() {
     };
 
     const logsInThreeDays = (user: User) => {
-        const threeDayAgo = new Date();
-        threeDayAgo.setDate(threeDayAgo.getDate() - 3);
-        return user.loginHistory.filter((login) => new Date(login.date) >= threeDayAgo).length;
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        return user.loginHistory.filter((login) => new Date(login.date) >= threeDaysAgo).length;
     };
 
     return (
@@ -99,14 +96,11 @@ export default function UserDetailPage() {
                             <Avatar className="h-16 w-16">
                                 <AvatarImage src={user.avatar} alt={user.name} />
                                 <AvatarFallback>
-                                    {user.name
-                                        .split(" ")
-                                        .map((n) => n[0])
-                                        .join("")}
+                                {user.firstName[0]}{user.lastName[0]}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <CardTitle className="text-2xl">{user.name}</CardTitle>
+                                <CardTitle className="text-2xl">{user.firstName} {user.lastName}</CardTitle>
                                 <CardDescription>{user.email}</CardDescription>
                                 <div className="mt-2 flex items-center space-x-2">
                                     <Badge
