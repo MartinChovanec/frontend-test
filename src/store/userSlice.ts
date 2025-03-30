@@ -40,6 +40,15 @@ const userSlice = createSlice({
     addUser(state, action: PayloadAction<User>) {
       state.users.unshift(action.payload);
     },
+    editUser(state, action: PayloadAction<Partial<User> & { id: number }>) {
+        const index = state.users.findIndex(u => u.id === action.payload.id);
+        if (index !== -1) {
+          state.users[index] = {
+            ...state.users[index],
+            ...action.payload,
+          };
+        }
+      }
   },
 });
 
